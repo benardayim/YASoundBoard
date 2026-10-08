@@ -421,8 +421,9 @@ public sealed class SoundLibrary
         }
 
         _log.LogInformation(
-            "Loaded {Count} sound(s) in {Elapsed:0.00}s ({Decoded} decoded, {Cached} from cache, {Failed} failed, {Megabytes:0.0} MB in RAM)",
+            "Loaded {Count} sound(s) from {Directory} in {Elapsed:0.00}s ({Decoded} decoded, {Cached} from cache, {Failed} failed, {Megabytes:0.0} MB in RAM)",
             _items.Count,
+            SoundsDirectory,
             LoadDuration.TotalSeconds,
             _decoded,
             _cached,
