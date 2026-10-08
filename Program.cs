@@ -52,6 +52,7 @@ engine.Start();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.UseWebSockets();
 
 app.MapGet("/api/state", (IOptions<UiOptions> ui, Hub hub) => Results.Json(new
 {
