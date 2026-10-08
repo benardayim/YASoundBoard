@@ -78,3 +78,10 @@ public sealed class UiOptions
     public float PadGapPx { get; set; } = 8f;
     public float PadRadiusPx { get; set; } = 14f;
 }
+
+public static class ConfigSections
+{
+    public const string Root = "YasoundBoard";
+
+    public static string Path(string section) => $"{Root}:{section}";
+}

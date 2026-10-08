@@ -7,13 +7,14 @@ using YasoundBoard.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<AudioOptions>(builder.Configuration.GetSection(AudioOptions.SectionName));
-builder.Services.Configure<LibraryOptions>(builder.Configuration.GetSection(LibraryOptions.SectionName));
-builder.Services.Configure<ServerOptions>(builder.Configuration.GetSection(ServerOptions.SectionName));
-builder.Services.Configure<UiOptions>(builder.Configuration.GetSection(UiOptions.SectionName));
+builder.Services.AddYasoundBoardOptions(builder.Configuration);
 
-var server = builder.Configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions();
-builder.WebHost.UseUrls($"http://{server.BindAddress}:{server.Port}");
+var server = builder.Configuration
+    .GetSection(ConfigSections.Path(ServerOptions.SectionName))
+    .Get<ServerOptions>() ?? new ServerOptions();
+
+var port = Math.Clamp(server.Port, 1, 65535);
+builder.WebHost.UseUrls($"http://{server.BindAddress}:{port}");
 
 builder.Services.AddSingleton<SoundLibrary>();
 builder.Services.AddSingleton<AudioEngine>();
@@ -102,7 +103,7 @@ app.Map("/ws", async context =>
 
 if (server.AnnounceAddresses)
 {
-    app.Lifetime.ApplicationStarted.Register(() => Announce(app, server.Port));
+    app.Lifetime.ApplicationStarted.Register(() => Announce(app, port));
 }
 
 app.Run();
