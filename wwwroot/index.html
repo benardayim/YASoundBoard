@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f1014">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>yasoundboard</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="bar">
+  <h1 id="title">yasoundboard</h1>
+  <div class="meter" id="meter" hidden><span class="meter-fill" id="meterFill"></span></div>
+  <div class="status" id="status">
+    <span class="dot" id="statusDot" data-kind="pending"></span>
+    <span id="statusText">connecting</span>
+  </div>
+</header>
+
+<main class="pads" id="pads"></main>
+
+<div class="empty" id="empty" hidden>
+  <p class="empty-title">No sounds loaded</p>
+  <p class="empty-hint">Drop audio files into the <code>sounds</code> folder beside the app, then restart it.</p>
+</div>
+
+<footer class="bar footer" id="footer" hidden>
+  <button class="action" id="stopAll" type="button">Stop all</button>
+  <label class="volume" id="volumeWrap">
+    <span class="volume-label">Volume</span>
+    <input id="masterVolume" type="range" min="0" max="200" step="1" value="100">
+    <output class="volume-value" id="volumeValue">100%</output>
+  </label>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
