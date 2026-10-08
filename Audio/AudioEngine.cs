@@ -28,6 +28,8 @@ public sealed class AudioEngine : IDisposable
 
     public bool IsRunning => _player?.PlaybackState == PlaybackState.Playing;
 
+    public bool Started { get; private set; }
+
     public string DeviceName { get; private set; } = string.Empty;
 
     public string ShareMode { get; private set; } = string.Empty;
@@ -78,6 +80,7 @@ public sealed class AudioEngine : IDisposable
         ActualLatencyMs = _player.LatencyMilliseconds;
 
         _player.Play();
+        Started = true;
 
         _log.LogInformation(
             "Rendering to \"{Device}\" ({Mode}, {Rate} Hz, {Channels} ch, {Voices} voice slots)",

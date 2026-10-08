@@ -398,9 +398,19 @@ public sealed class SoundLibrary
     {
         if (_items.Count == 0)
         {
-            _log.LogWarning(
-                "No sounds found. Drop audio files into {Directory} and restart, or point Library.SoundsDirectory somewhere else.",
-                SoundsDirectory);
+            if (_failed > 0)
+            {
+                _log.LogError(
+                    "Every sound failed to decode, so the library is empty. Check that Library.FfmpegPath (currently \"{Ffmpeg}\") points at a working ffmpeg.",
+                    _options.FfmpegPath);
+            }
+            else
+            {
+                _log.LogWarning(
+                    "No sounds found. Drop audio files into {Directory} and restart, or point Library.SoundsDirectory somewhere else.",
+                    SoundsDirectory);
+            }
+
             return;
         }
 
