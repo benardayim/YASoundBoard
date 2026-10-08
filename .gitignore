@@ -7,6 +7,5 @@ obj/
 *.DotSettings.user
 .workbuddy-ai/
 .cache/
-sounds/
 Thumbs.db
 desktop.ini
