@@ -1,6 +1,26 @@
 (function () {
   'use strict';
 
+  var STORE_KEY = 'yasoundboard.ui';
+
+  var ACCENTS = ['#e24b4a', '#d4537e', '#7f77dd', '#378add', '#1d9e75', '#ef9f27'];
+
+  var SCHEMA = [
+    { key: 'theme', label: 'Theme', kind: 'select', options: [['auto', 'Auto'], ['dark', 'Dark'], ['light', 'Light']] },
+    { key: 'accentColor', label: 'Accent colour', kind: 'accent' },
+    { key: 'columns', label: 'Pads per row', kind: 'select', numeric: true, options: [['0', 'Automatic'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']] },
+    { key: 'padMinWidthPx', label: 'Smallest pad', kind: 'range', min: 48, max: 200, step: 4, suffix: ' px' },
+    { key: 'padGapPx', label: 'Gap between pads', kind: 'range', min: 0, max: 24, step: 1, suffix: ' px' },
+    { key: 'padRadiusPx', label: 'Corner rounding', kind: 'range', min: 0, max: 30, step: 1, suffix: ' px' },
+    { key: 'showLabels', label: 'Show names on pads', kind: 'check' },
+    { key: 'showStopAll', label: 'Show stop all', kind: 'check' },
+    { key: 'showMasterVolume', label: 'Show volume', kind: 'check' },
+    { key: 'flashOnTap', label: 'Flash when tapped', kind: 'check' },
+    { key: 'vibrateOnTap', label: 'Vibrate when tapped', kind: 'check' },
+    { key: 'vibrateMs', label: 'Vibration length', kind: 'range', min: 0, max: 120, step: 5, suffix: ' ms' },
+    { key: 'keepAwake', label: 'Keep the screen on', kind: 'check' }
+  ];
+
   var dom = {
     root: document.documentElement,
     grid: document.getElementById('pads'),
@@ -10,16 +30,300 @@
     volumeWrap: document.getElementById('volumeWrap'),
     volume: document.getElementById('masterVolume'),
     volumeValue: document.getElementById('volumeValue'),
+    settingsOpen: document.getElementById('settingsOpen'),
+    settingsClose: document.getElementById('settingsClose'),
+    settingsReset: document.getElementById('settingsReset'),
+    settingsBody: document.getElementById('settingsBody'),
+    panel: document.getElementById('panel')
   };
 
+  var settings = {};
+  var defaults = {};
+  var sounds = [];
   var pads = new Map();
   var isTouch = 'ontouchstart' in window;
 
   var socket = null;
   var retryDelay = 500;
   var wakeLock = null;
-  var settings = null;
   var volumeDragging = false;
+  var columnCount = 4;
+  var accentStyle = null;
+
+  function clone(source) {
+    var copy = {};
+    var key;
+
+    for (key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        copy[key] = source[key];
+      }
+    }
+
+    return copy;
+  }
+
+  function clearNode(node) {
+    while (node.firstChild) {
+      node.removeChild(node.firstChild);
+    }
+  }
+
+  function load() {
+    var raw = null;
+    var stored = null;
+    var key;
+
+    try {
+      raw = window.localStorage.getItem(STORE_KEY);
+    } catch (error) {
+      raw = null;
+    }
+
+    if (raw) {
+      try {
+        stored = JSON.parse(raw);
+      } catch (error) {
+        stored = null;
+      }
+    }
+
+    settings = clone(defaults);
+
+    if (!stored) {
+      return;
+    }
+
+    for (key in settings) {
+      if (Object.prototype.hasOwnProperty.call(settings, key) && stored[key] !== undefined) {
+        settings[key] = stored[key];
+      }
+    }
+  }
+
+  function save() {
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(settings));
+    } catch (error) {
+      return;
+    }
+  }
+
+  function clearStored() {
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+    } catch (error) {
+      return;
+    }
+  }
+
+  function resolveTheme(theme) {
+    if (theme === 'light') {
+      return 'light';
+    }
+
+    if (theme === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light';
+    }
+
+    return 'dark';
+  }
+
+  function computeColumns() {
+    if (settings.columns > 0) {
+      return settings.columns;
+    }
+
+    var width = window.innerWidth || 360;
+    return Math.max(2, Math.floor(width / settings.padMinWidthPx));
+  }
+
+  function applyAccent() {
+    if (!accentStyle) {
+      accentStyle = document.createElement('style');
+      document.head.appendChild(accentStyle);
+    }
+
+    accentStyle.textContent =
+      '.volume input::-webkit-slider-thumb{background:' + settings.accentColor + ';}' +
+      '.row-range input::-webkit-slider-thumb{background:' + settings.accentColor + ';}';
+  }
+
+  function apply() {
+    dom.root.dataset.theme = resolveTheme(settings.theme);
+
+    applyAccent();
+
+    dom.stopAll.hidden = !settings.showStopAll;
+    dom.volumeWrap.hidden = !settings.showMasterVolume;
+    dom.footer.hidden = !settings.showStopAll && !settings.showMasterVolume;
+
+    columnCount = computeColumns();
+
+    buildPads();
+
+    if (settings.keepAwake) {
+      requestWakeLock();
+    }
+  }
+
+  function commit() {
+    save();
+    apply();
+  }
+
+  function buildPanel() {
+    var index;
+
+    clearNode(dom.settingsBody);
+
+    for (index = 0; index < SCHEMA.length; index++) {
+      dom.settingsBody.appendChild(buildRow(SCHEMA[index]));
+    }
+  }
+
+  function buildRow(spec) {
+    var row = document.createElement('div');
+    row.className = 'row';
+
+    if (spec.kind === 'check') {
+      return buildCheckRow(row, spec);
+    }
+
+    var label = document.createElement('span');
+    label.className = 'row-label';
+    label.textContent = spec.label;
+    row.appendChild(label);
+
+    if (spec.kind === 'select') {
+      row.appendChild(buildSelect(spec));
+    } else if (spec.kind === 'accent') {
+      row.appendChild(buildSwatches());
+    } else {
+      row.appendChild(buildRange(spec));
+    }
+
+    return row;
+  }
+
+  function buildCheckRow(row, spec) {
+    row.className = 'row row-check';
+
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = settings[spec.key] !== false;
+
+    input.addEventListener('change', function () {
+      settings[spec.key] = input.checked;
+      commit();
+    });
+
+    var label = document.createElement('span');
+    label.className = 'row-check-label';
+    label.textContent = spec.label;
+
+    addPress(label, function () {
+      input.checked = !input.checked;
+      settings[spec.key] = input.checked;
+      commit();
+    });
+
+    row.appendChild(input);
+    row.appendChild(label);
+
+    return row;
+  }
+
+  function buildSelect(spec) {
+    var select = document.createElement('select');
+    var index;
+    var option;
+
+    for (index = 0; index < spec.options.length; index++) {
+      option = document.createElement('option');
+      option.value = spec.options[index][0];
+      option.textContent = spec.options[index][1];
+      select.appendChild(option);
+    }
+
+    select.value = String(settings[spec.key]);
+
+    select.addEventListener('change', function () {
+      settings[spec.key] = spec.numeric ? Number(select.value) : select.value;
+      commit();
+    });
+
+    return select;
+  }
+
+  function buildRange(spec) {
+    var wrap = document.createElement('div');
+    wrap.className = 'row-range';
+
+    var input = document.createElement('input');
+    input.type = 'range';
+    input.min = String(spec.min);
+    input.max = String(spec.max);
+    input.step = String(spec.step);
+    input.value = String(settings[spec.key]);
+
+    var value = document.createElement('output');
+    value.className = 'row-value';
+    value.textContent = input.value + spec.suffix;
+
+    input.addEventListener('input', function () {
+      settings[spec.key] = Number(input.value);
+      value.textContent = input.value + spec.suffix;
+      commit();
+    });
+
+    wrap.appendChild(input);
+    wrap.appendChild(value);
+
+    return wrap;
+  }
+
+  function buildSwatches() {
+    var wrap = document.createElement('div');
+    wrap.className = 'swatches';
+    var index;
+
+    for (index = 0; index < ACCENTS.length; index++) {
+      wrap.appendChild(buildSwatch(ACCENTS[index]));
+    }
+
+    return wrap;
+  }
+
+  function buildSwatch(colour) {
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'swatch';
+    button.style.background = colour;
+    button.setAttribute('data-colour', colour);
+
+    if (settings.accentColor === colour) {
+      button.className = 'swatch is-on';
+    }
+
+    addPress(button, function () {
+      settings.accentColor = colour;
+      markSwatches();
+      commit();
+    });
+
+    return button;
+  }
+
+  function markSwatches() {
+    var found = dom.settingsBody.getElementsByClassName('swatch');
+    var index;
+
+    for (index = 0; index < found.length; index++) {
+      var on = found[index].getAttribute('data-colour') === settings.accentColor;
+      found[index].className = on ? 'swatch is-on' : 'swatch';
+    }
+  }
 
   function send(message) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -71,46 +375,37 @@
   }
 
   function handle(message) {
-    switch (message.type) {
-      case 'hello':
-        applyHello(message);
-        break;
-
-      case 'state':
-        applyState(message);
-        break;
-
-      case 'error':
-        console.warn('yasoundboard:', message.message);
-        break;
+    if (message.type === 'hello') {
+      applyHello(message);
+    } else if (message.type === 'state') {
+      applyState(message);
+    } else if (message.type === 'error') {
+      console.warn('yasoundboard:', message.message);
     }
   }
 
   function applyHello(message) {
-    settings = message.ui || {};
+    defaults = message.ui || {};
+    sounds = message.sounds || [];
 
     document.title = message.title;
 
-    applyTheme(settings.theme);
-
-    dom.stopAll.hidden = !settings.showStopAll;
-    dom.volumeWrap.hidden = !settings.showMasterVolume;
-    dom.footer.hidden = !settings.showStopAll && !settings.showMasterVolume;
-
-    buildPads(message.sounds);
+    load();
+    buildPanel();
+    apply();
 
     if (message.audio) {
       syncVolume(message.audio.masterGain);
     }
-
-    requestWakeLock();
   }
 
   function applyState(message) {
     var active = new Set(message.active || []);
 
     pads.forEach(function (pad, id) {
-      pad.classList.toggle('is-active', active.has(id));
+      var on = active.has(id);
+      pad.classList.toggle('is-active', on);
+      pad.style.borderColor = on ? pad.getAttribute('data-accent') : '';
     });
 
     if (!volumeDragging) {
@@ -118,17 +413,11 @@
     }
   }
 
-  function clearGrid() {
-    while (dom.grid.firstChild) {
-      dom.grid.removeChild(dom.grid.firstChild);
-    }
-  }
-
-  function buildPads(sounds) {
-    clearGrid();
+  function buildPads() {
+    clearNode(dom.grid);
     pads.clear();
 
-    if (!sounds || sounds.length === 0) {
+    if (sounds.length === 0) {
       dom.empty.hidden = false;
       return;
     }
@@ -136,37 +425,50 @@
     dom.empty.hidden = true;
 
     var fragment = document.createDocumentFragment();
+    var index;
 
-    sounds.forEach(function (sound) {
-      var pad = document.createElement('button');
-      pad.type = 'button';
-      pad.className = 'pad';
-      pad.dataset.id = sound.id;
-
-      if (sound.color) {
-        pad.style.setProperty('--pad-accent', sound.color);
-      }
-
-      if (settings.showLabels) {
-        var label = document.createElement('span');
-        label.className = 'pad-label';
-        label.textContent = sound.name;
-        pad.appendChild(label);
-      }
-
-      addPress(pad, function () {
-        trigger(sound.id);
-      });
-
-      pad.addEventListener('contextmenu', function (event) {
-        event.preventDefault();
-      });
-
-      fragment.appendChild(pad);
-      pads.set(sound.id, pad);
-    });
+    for (index = 0; index < sounds.length; index++) {
+      fragment.appendChild(buildPad(sounds[index]));
+    }
 
     dom.grid.appendChild(fragment);
+  }
+
+  function buildPad(sound) {
+    var accent = sound.color || settings.accentColor;
+    var pad = document.createElement('button');
+
+    pad.type = 'button';
+    pad.className = 'pad';
+    pad.dataset.id = sound.id;
+    pad.setAttribute('data-accent', accent);
+    pad.style.width = 'calc(' + (100 / columnCount) + '% - ' + settings.padGapPx + 'px)';
+    pad.style.margin = (settings.padGapPx / 2) + 'px';
+    pad.style.borderRadius = settings.padRadiusPx + 'px';
+
+    var fill = document.createElement('span');
+    fill.className = 'pad-fill';
+    fill.style.background = accent;
+    pad.appendChild(fill);
+
+    if (settings.showLabels) {
+      var label = document.createElement('span');
+      label.className = 'pad-label';
+      label.textContent = sound.name;
+      pad.appendChild(label);
+    }
+
+    addPress(pad, function () {
+      trigger(sound.id);
+    });
+
+    pad.addEventListener('contextmenu', function (event) {
+      event.preventDefault();
+    });
+
+    pads.set(sound.id, pad);
+
+    return pad;
   }
 
   function trigger(id) {
@@ -177,7 +479,7 @@
       return;
     }
 
-    if (settings && settings.flashOnTap) {
+    if (settings.flashOnTap) {
       pad.classList.remove('is-hit');
       void pad.offsetWidth;
       pad.classList.add('is-hit');
@@ -186,8 +488,8 @@
       }, 150);
     }
 
-    if (settings && settings.vibrateOnTap && navigator.vibrate) {
-      navigator.vibrate(settings.vibrateMs || 15);
+    if (settings.vibrateOnTap && navigator.vibrate) {
+      navigator.vibrate(settings.vibrateMs);
     }
   }
 
@@ -201,23 +503,7 @@
     dom.volumeValue.textContent = percent + '%';
   }
 
-  function applyTheme(theme) {
-    var resolved = 'dark';
-
-    if (theme === 'auto') {
-      resolved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } else if (theme === 'light') {
-      resolved = 'light';
-    }
-
-    dom.root.dataset.theme = resolved;
-  }
-
   function requestWakeLock() {
-    if (!settings || !settings.keepAwake) {
-      return;
-    }
-
     if (!('wakeLock' in navigator) || wakeLock) {
       return;
     }
@@ -231,6 +517,21 @@
       wakeLock = null;
     });
   }
+
+  dom.settingsOpen.addEventListener('click', function () {
+    dom.panel.hidden = false;
+  });
+
+  dom.settingsClose.addEventListener('click', function () {
+    dom.panel.hidden = true;
+  });
+
+  dom.settingsReset.addEventListener('click', function () {
+    clearStored();
+    settings = clone(defaults);
+    buildPanel();
+    apply();
+  });
 
   dom.volume.addEventListener('input', function () {
     volumeDragging = true;
@@ -251,6 +552,15 @@
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
       requestWakeLock();
+    }
+  });
+
+  window.addEventListener('resize', function () {
+    var next = computeColumns();
+
+    if (next !== columnCount) {
+      columnCount = next;
+      buildPads();
     }
   });
 

@@ -25,11 +25,22 @@
 <footer class="bar footer" id="footer" hidden>
   <button class="action" id="stopAll" type="button">Stop all</button>
   <label class="volume" id="volumeWrap">
-    <span class="volume-label">Volume</span>
     <input id="masterVolume" type="range" min="0" max="200" step="1" value="100">
     <output class="volume-value" id="volumeValue">100%</output>
   </label>
+  <button class="action" id="settingsOpen" type="button">Settings</button>
 </footer>
+
+<div class="panel" id="panel" hidden>
+  <div class="panel-bar">
+    <span class="panel-title">Settings</span>
+    <button class="action" id="settingsClose" type="button">Close</button>
+  </div>
+  <div class="panel-body" id="settingsBody"></div>
+  <div class="panel-bar">
+    <button class="action" id="settingsReset" type="button">Reset to defaults</button>
+  </div>
+</div>
 
 <script src="/app.js"></script>
 </body>
