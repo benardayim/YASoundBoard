@@ -48,7 +48,17 @@ var library = app.Services.GetRequiredService<SoundLibrary>();
 await library.LoadAsync();
 
 var engine = app.Services.GetRequiredService<AudioEngine>();
-engine.Start();
+
+try
+{
+    engine.Start();
+}
+catch (InvalidOperationException ex)
+{
+    app.Logger.LogError("{Message}", ex.Message);
+    Environment.ExitCode = 1;
+    return;
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

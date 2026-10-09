@@ -228,9 +228,18 @@ public sealed class AudioEngine : IDisposable
             device.Dispose();
         }
 
+        if (wanted.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "Audio.DeviceNameMatch is empty, so there is no output device to render to. " +
+                $"Available render devices: {available}. " +
+                "Set Audio.DeviceNameMatch to part of one of those names, or run with --list-devices.");
+        }
+
         throw new InvalidOperationException(
-            $"No active render device matched \"{_options.DeviceNameMatch}\". Available: {available}. " +
-            "Set Audio.DeviceNameMatch or Audio.DeviceNameFallbacks in appsettings.json.");
+            $"No output device matched \"{_options.DeviceNameMatch}\". " +
+            $"Available render devices: {available}. " +
+            "Set Audio.DeviceNameMatch to part of one of those names, or run with --list-devices.");
     }
 
     private static AudioClientShareMode ParseShareMode(string value)
