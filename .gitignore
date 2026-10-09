@@ -7,5 +7,6 @@ obj/
 *.DotSettings.user
 .workbuddy-ai/
 .cache/
+appsettings.local.json
 Thumbs.db
 desktop.ini

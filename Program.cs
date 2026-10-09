@@ -7,6 +7,8 @@ using YasoundBoard.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddJsonFile("appsettings.local.json", optional: true);
+
 builder.Services.AddYasoundBoardOptions(builder.Configuration);
 
 var server = builder.Configuration

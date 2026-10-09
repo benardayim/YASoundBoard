@@ -15,4 +15,8 @@
     <PackageReference Include="NAudio" Version="3.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.local.json')" />
+  </ItemGroup>
+
 </Project>
