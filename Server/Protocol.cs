@@ -23,22 +23,6 @@ public sealed record SoundDto(
     float Peak,
     int Order);
 
-public sealed record UiDto(
-    string Title,
-    string Theme,
-    string AccentColor,
-    int Columns,
-    bool ShowLabels,
-    bool ShowStopAll,
-    bool ShowMasterVolume,
-    bool VibrateOnTap,
-    int VibrateMs,
-    bool FlashOnTap,
-    bool KeepAwake,
-    float PadMinWidthPx,
-    float PadGapPx,
-    float PadRadiusPx);
-
 public sealed record AudioDto(
     string Device,
     string ShareMode,
@@ -53,7 +37,6 @@ public sealed record HelloMessage(
     string Type,
     string Title,
     SoundDto[] Sounds,
-    UiDto Ui,
     AudioDto Audio);
 
 public sealed record StateMessage(

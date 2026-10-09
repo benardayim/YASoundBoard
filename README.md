@@ -103,25 +103,16 @@ Both files accept `//` comments, and lists are replaced rather than merged.
 
 ### Ui
 
-Sent to the phone when it connects, so changing one needs the app restarted, not the phone.
+Two settings live here, because the phone cannot supply them.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
 | `Title` | `yasoundboard` | The page title and the name on the home screen. |
 | `DisplayMode` | `standalone` | How the page opens from the home screen. |
-| `Theme` | `auto` | `auto`, `dark` or `light`. |
-| `AccentColor` | `#e24b4a` | Colour of the pad flash. |
-| `Columns` | `0` | Pads per row. `0` decides from the screen size. |
-| `ShowLabels` | `true` | Show the sound names on the pads. |
-| `ShowStopAll` | `true` | Show the stop all button. |
-| `ShowMasterVolume` | `true` | Show the volume slider. |
-| `VibrateOnTap` | `true` | Vibrate when a pad is tapped. |
-| `VibrateMs` | `15` | How long the vibration lasts. |
-| `FlashOnTap` | `true` | Flash the pad when it is tapped. |
-| `KeepAwake` | `true` | Keep the screen on while the page is open. |
-| `PadMinWidthPx` | `92` | Smallest a pad can get, which sets how many fit per row. |
-| `PadGapPx` | `8` | Space between pads. |
-| `PadRadiusPx` | `14` | How rounded the pads are. |
+
+Everything else about how the page looks and behaves is set on the phone, using the Settings button
+beside the volume slider. Those choices are stored in the phone's browser, so each device keeps its
+own, and they are never sent back to the server.
 
 ## Per sound overrides
 

@@ -6,19 +6,19 @@
   var ACCENTS = ['#e24b4a', '#d4537e', '#7f77dd', '#378add', '#1d9e75', '#ef9f27'];
 
   var SCHEMA = [
-    { key: 'theme', label: 'Theme', kind: 'select', options: [['auto', 'Auto'], ['dark', 'Dark'], ['light', 'Light']] },
-    { key: 'accentColor', label: 'Accent colour', kind: 'accent' },
-    { key: 'columns', label: 'Pads per row', kind: 'select', numeric: true, options: [['0', 'Automatic'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']] },
-    { key: 'padMinWidthPx', label: 'Smallest pad', kind: 'range', min: 48, max: 200, step: 4, suffix: ' px' },
-    { key: 'padGapPx', label: 'Gap between pads', kind: 'range', min: 0, max: 24, step: 1, suffix: ' px' },
-    { key: 'padRadiusPx', label: 'Corner rounding', kind: 'range', min: 0, max: 30, step: 1, suffix: ' px' },
-    { key: 'showLabels', label: 'Show names on pads', kind: 'check' },
-    { key: 'showStopAll', label: 'Show stop all', kind: 'check' },
-    { key: 'showMasterVolume', label: 'Show volume', kind: 'check' },
-    { key: 'flashOnTap', label: 'Flash when tapped', kind: 'check' },
-    { key: 'vibrateOnTap', label: 'Vibrate when tapped', kind: 'check' },
-    { key: 'vibrateMs', label: 'Vibration length', kind: 'range', min: 0, max: 120, step: 5, suffix: ' ms' },
-    { key: 'keepAwake', label: 'Keep the screen on', kind: 'check' }
+    { key: 'theme', label: 'Theme', kind: 'select', value: 'auto', options: [['auto', 'Auto'], ['dark', 'Dark'], ['light', 'Light']] },
+    { key: 'accentColor', label: 'Accent colour', kind: 'accent', value: '#e24b4a' },
+    { key: 'columns', label: 'Pads per row', kind: 'select', numeric: true, value: 0, options: [['0', 'Automatic'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']] },
+    { key: 'padMinWidthPx', label: 'Smallest pad', kind: 'range', value: 92, min: 48, max: 200, step: 4, suffix: ' px' },
+    { key: 'padGapPx', label: 'Gap between pads', kind: 'range', value: 8, min: 0, max: 24, step: 1, suffix: ' px' },
+    { key: 'padRadiusPx', label: 'Corner rounding', kind: 'range', value: 14, min: 0, max: 30, step: 1, suffix: ' px' },
+    { key: 'showLabels', label: 'Show names on pads', kind: 'check', value: true },
+    { key: 'showStopAll', label: 'Show stop all', kind: 'check', value: true },
+    { key: 'showMasterVolume', label: 'Show volume', kind: 'check', value: true },
+    { key: 'flashOnTap', label: 'Flash when tapped', kind: 'check', value: true },
+    { key: 'vibrateOnTap', label: 'Vibrate when tapped', kind: 'check', value: true },
+    { key: 'vibrateMs', label: 'Vibration length', kind: 'range', value: 15, min: 0, max: 120, step: 5, suffix: ' ms' },
+    { key: 'keepAwake', label: 'Keep the screen on', kind: 'check', value: true }
   ];
 
   var dom = {
@@ -38,7 +38,6 @@
   };
 
   var settings = {};
-  var defaults = {};
   var sounds = [];
   var pads = new Map();
   var isTouch = 'ontouchstart' in window;
@@ -50,19 +49,6 @@
   var columnCount = 4;
   var accentStyle = null;
 
-  function clone(source) {
-    var copy = {};
-    var key;
-
-    for (key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        copy[key] = source[key];
-      }
-    }
-
-    return copy;
-  }
-
   function clearNode(node) {
     while (node.firstChild) {
       node.removeChild(node.firstChild);
@@ -72,7 +58,8 @@
   function load() {
     var raw = null;
     var stored = null;
-    var key;
+    var index;
+    var spec;
 
     try {
       raw = window.localStorage.getItem(STORE_KEY);
@@ -88,16 +75,11 @@
       }
     }
 
-    settings = clone(defaults);
+    settings = {};
 
-    if (!stored) {
-      return;
-    }
-
-    for (key in settings) {
-      if (Object.prototype.hasOwnProperty.call(settings, key) && stored[key] !== undefined) {
-        settings[key] = stored[key];
-      }
+    for (index = 0; index < SCHEMA.length; index++) {
+      spec = SCHEMA[index];
+      settings[spec.key] = stored && stored[spec.key] !== undefined ? stored[spec.key] : spec.value;
     }
   }
 
@@ -385,7 +367,6 @@
   }
 
   function applyHello(message) {
-    defaults = message.ui || {};
     sounds = message.sounds || [];
 
     document.title = message.title;
@@ -528,7 +509,7 @@
 
   dom.settingsReset.addEventListener('click', function () {
     clearStored();
-    settings = clone(defaults);
+    load();
     buildPanel();
     apply();
   });

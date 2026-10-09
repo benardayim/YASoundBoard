@@ -213,22 +213,6 @@ public sealed class Hub
                 sound.Order));
         }
 
-        var ui = new UiDto(
-            _ui.Title,
-            _ui.Theme,
-            _ui.AccentColor,
-            _ui.Columns,
-            _ui.ShowLabels,
-            _ui.ShowStopAll,
-            _ui.ShowMasterVolume,
-            _ui.VibrateOnTap,
-            _ui.VibrateMs,
-            _ui.FlashOnTap,
-            _ui.KeepAwake,
-            _ui.PadMinWidthPx,
-            _ui.PadGapPx,
-            _ui.PadRadiusPx);
-
         var audio = new AudioDto(
             _engine.DeviceName,
             _engine.ShareMode,
@@ -239,7 +223,7 @@ public sealed class Hub
             _audio.MaxVoices,
             MathF.Round(_engine.Mixer.MasterGain, 3));
 
-        return new HelloMessage("hello", _ui.Title, sounds.ToArray(), ui, audio);
+        return new HelloMessage("hello", _ui.Title, sounds.ToArray(), audio);
     }
 
     private static async Task SendAsync(WebSocket socket, object message, CancellationToken cancellationToken)
