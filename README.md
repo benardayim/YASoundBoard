@@ -107,21 +107,18 @@ Sent to the phone when it connects, so changing one needs the app restarted, not
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| `Title` | `yasoundboard` | Shown at the top of the page. |
+| `Title` | `yasoundboard` | The page title and the name on the home screen. |
 | `DisplayMode` | `standalone` | How the page opens from the home screen. |
 | `Theme` | `auto` | `auto`, `dark` or `light`. |
-| `AccentColor` | `#e24b4a` | Colour of the level meter and the pad flash. |
+| `AccentColor` | `#e24b4a` | Colour of the pad flash. |
 | `Columns` | `0` | Pads per row. `0` decides from the screen size. |
 | `ShowLabels` | `true` | Show the sound names on the pads. |
-| `ShowLevels` | `true` | Show the level meter. |
 | `ShowStopAll` | `true` | Show the stop all button. |
 | `ShowMasterVolume` | `true` | Show the volume slider. |
-| `ShowConnectionStatus` | `true` | Show whether the phone is connected. |
 | `VibrateOnTap` | `true` | Vibrate when a pad is tapped. |
 | `VibrateMs` | `15` | How long the vibration lasts. |
 | `FlashOnTap` | `true` | Flash the pad when it is tapped. |
 | `KeepAwake` | `true` | Keep the screen on while the page is open. |
-| `StateUpdatesPerSecond` | `20` | How often the phone is updated. Lower saves battery. |
 | `PadMinWidthPx` | `92` | Smallest a pad can get, which sets how many fit per row. |
 | `PadGapPx` | `8` | Space between pads. |
 | `PadRadiusPx` | `14` | How rounded the pads are. |

@@ -34,7 +34,6 @@ public static class OptionsRegistration
         services
             .AddOptions<UiOptions>()
             .Bind(configuration.GetSection(ConfigSections.Path(UiOptions.SectionName)))
-            .Validate(o => o.StateUpdatesPerSecond is >= 1 and <= 60, "Ui.StateUpdatesPerSecond must be between 1 and 60.")
             .Validate(o => o.Columns is >= 0 and <= 12, "Ui.Columns must be between 0 and 12, where 0 means automatic.")
             .Validate(o => o.PadMinWidthPx is >= 24f and <= 400f, "Ui.PadMinWidthPx must be between 24 and 400.")
             .Validate(o => o.VibrateMs is >= 0 and <= 1000, "Ui.VibrateMs must be between 0 and 1000.")

@@ -65,15 +65,12 @@ public sealed class UiOptions
     public string AccentColor { get; set; } = "#e24b4a";
     public int Columns { get; set; } = 0;
     public bool ShowLabels { get; set; } = true;
-    public bool ShowLevels { get; set; } = true;
     public bool ShowStopAll { get; set; } = true;
     public bool ShowMasterVolume { get; set; } = true;
-    public bool ShowConnectionStatus { get; set; } = true;
     public bool VibrateOnTap { get; set; } = true;
     public int VibrateMs { get; set; } = 15;
     public bool FlashOnTap { get; set; } = true;
     public bool KeepAwake { get; set; } = true;
-    public int StateUpdatesPerSecond { get; set; } = 20;
     public float PadMinWidthPx { get; set; } = 92f;
     public float PadGapPx { get; set; } = 8f;
     public float PadRadiusPx { get; set; } = 14f;

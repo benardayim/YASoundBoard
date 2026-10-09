@@ -29,10 +29,8 @@ public sealed record UiDto(
     string AccentColor,
     int Columns,
     bool ShowLabels,
-    bool ShowLevels,
     bool ShowStopAll,
     bool ShowMasterVolume,
-    bool ShowConnectionStatus,
     bool VibrateOnTap,
     int VibrateMs,
     bool FlashOnTap,
@@ -60,10 +58,8 @@ public sealed record HelloMessage(
 
 public sealed record StateMessage(
     string Type,
-    float Peak,
     string[] Active,
-    float MasterGain,
-    int Voices);
+    float MasterGain);
 
 public sealed record ErrorMessage(string Type, string Message);
 

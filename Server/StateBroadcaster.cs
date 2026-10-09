@@ -1,43 +1,38 @@
-using Microsoft.Extensions.Options;
 using YasoundBoard.Audio;
-using YasoundBoard.Configuration;
 using YasoundBoard.Library;
 
 namespace YasoundBoard.Server;
 
 public sealed class StateBroadcaster : BackgroundService
 {
+    private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(50);
+
     private readonly Hub _hub;
     private readonly AudioEngine _engine;
     private readonly SoundLibrary _library;
-    private readonly UiOptions _ui;
     private readonly ILogger<StateBroadcaster> _log;
 
     public StateBroadcaster(
         Hub hub,
         AudioEngine engine,
         SoundLibrary library,
-        IOptions<UiOptions> ui,
         ILogger<StateBroadcaster> log)
     {
         _hub = hub;
         _engine = engine;
         _library = library;
-        _ui = ui.Value;
         _log = log;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var rate = Math.Clamp(_ui.StateUpdatesPerSecond, 1, 60);
-        var interval = TimeSpan.FromMilliseconds(1000.0 / rate);
         var previous = string.Empty;
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                await Task.Delay(interval, stoppingToken).ConfigureAwait(false);
+                await Task.Delay(PollInterval, stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -60,20 +55,17 @@ public sealed class StateBroadcaster : BackgroundService
                 }
             }
 
-            var signature = string.Join('|', active);
-            if (!_ui.ShowLevels && signature == previous)
+            var gain = MathF.Round(mixer.MasterGain, 3);
+            var signature = string.Join('|', active) + "#" + gain;
+
+            if (signature == previous)
             {
                 continue;
             }
 
             previous = signature;
 
-            var message = new StateMessage(
-                "state",
-                MathF.Round(mixer.Peak, 4),
-                active.ToArray(),
-                MathF.Round(mixer.MasterGain, 3),
-                mixer.ActiveVoiceCount);
+            var message = new StateMessage("state", active.ToArray(), gain);
 
             try
             {
