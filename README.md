@@ -1,6 +1,6 @@
 # YASoundBoard
 
-A soundboard you control from your phone or any touch screen device.
+Yet another soundboard app that you control from your phone or any touch screen device.
 
 The app plays sounds on the output device you choose.
 
