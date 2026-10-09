@@ -1,9 +1,8 @@
-(() => {
+(function () {
   'use strict';
 
-  const dom = {
+  var dom = {
     root: document.documentElement,
-    title: document.getElementById('title'),
     grid: document.getElementById('pads'),
     empty: document.getElementById('empty'),
     footer: document.getElementById('footer'),
@@ -11,25 +10,16 @@
     volumeWrap: document.getElementById('volumeWrap'),
     volume: document.getElementById('masterVolume'),
     volumeValue: document.getElementById('volumeValue'),
-    meter: document.getElementById('meter'),
-    meterFill: document.getElementById('meterFill'),
-    status: document.getElementById('status'),
-    statusDot: document.getElementById('statusDot'),
-    statusText: document.getElementById('statusText'),
   };
 
-  const pads = new Map();
+  var pads = new Map();
+  var isTouch = 'ontouchstart' in window;
 
-  let socket = null;
-  let retryDelay = 500;
-  let wakeLock = null;
-  let settings = null;
-  let volumeDragging = false;
-
-  function setStatus(text, kind) {
-    dom.statusText.textContent = text;
-    dom.statusDot.dataset.kind = kind;
-  }
+  var socket = null;
+  var retryDelay = 500;
+  var wakeLock = null;
+  var settings = null;
+  var volumeDragging = false;
 
   function send(message) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -39,41 +29,45 @@
     socket.send(JSON.stringify(message));
   }
 
+  function addPress(element, handler) {
+    element.addEventListener(isTouch ? 'touchstart' : 'mousedown', function (event) {
+      event.preventDefault();
+      handler();
+    });
+  }
+
   function connect() {
-    setStatus('connecting', 'pending');
+    var scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    socket = new WebSocket(scheme + '://' + window.location.host + '/ws');
 
-    const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    socket = new WebSocket(`${scheme}://${window.location.host}/ws`);
-
-    socket.addEventListener('open', () => {
+    socket.addEventListener('open', function () {
       retryDelay = 500;
-      setStatus('connected', 'ok');
     });
 
-    socket.addEventListener('message', (event) => {
-      let message;
+    socket.addEventListener('message', function (event) {
+      var message;
 
       try {
         message = JSON.parse(event.data);
-      } catch {
+      } catch (error) {
         return;
       }
 
       handle(message);
     });
 
-    socket.addEventListener('close', () => {
-      setStatus('reconnecting', 'bad');
-
-      for (const pad of pads.values()) {
+    socket.addEventListener('close', function () {
+      pads.forEach(function (pad) {
         pad.classList.remove('is-active');
-      }
+      });
 
       window.setTimeout(connect, retryDelay);
       retryDelay = Math.min(retryDelay * 2, 5000);
     });
 
-    socket.addEventListener('error', () => socket.close());
+    socket.addEventListener('error', function () {
+      socket.close();
+    });
   }
 
   function handle(message) {
@@ -96,24 +90,9 @@
     settings = message.ui || {};
 
     document.title = message.title;
-    dom.title.textContent = message.title;
-
-    dom.root.style.setProperty('--accent', settings.accentColor || '#e24b4a');
-    dom.root.style.setProperty('--pad-min', `${settings.padMinWidthPx || 92}px`);
-    dom.root.style.setProperty('--gap', `${settings.padGapPx || 8}px`);
-    dom.root.style.setProperty('--radius', `${settings.padRadiusPx || 14}px`);
-
-    if (settings.columns > 0) {
-      dom.root.style.setProperty('--columns', String(settings.columns));
-      dom.grid.dataset.fixedColumns = 'true';
-    } else {
-      delete dom.grid.dataset.fixedColumns;
-    }
 
     applyTheme(settings.theme);
 
-    dom.meter.hidden = !settings.showLevels;
-    dom.status.hidden = !settings.showConnectionStatus;
     dom.stopAll.hidden = !settings.showStopAll;
     dom.volumeWrap.hidden = !settings.showMasterVolume;
     dom.footer.hidden = !settings.showStopAll && !settings.showMasterVolume;
@@ -128,24 +107,25 @@
   }
 
   function applyState(message) {
-    if (settings && settings.showLevels) {
-      const level = Math.min(1, Math.max(0, message.peak || 0));
-      dom.meterFill.style.transform = `scaleX(${level})`;
-    }
+    var active = new Set(message.active || []);
 
-    const active = new Set(message.active || []);
-
-    for (const [id, pad] of pads) {
+    pads.forEach(function (pad, id) {
       pad.classList.toggle('is-active', active.has(id));
-    }
+    });
 
     if (!volumeDragging) {
       syncVolume(message.masterGain);
     }
   }
 
+  function clearGrid() {
+    while (dom.grid.firstChild) {
+      dom.grid.removeChild(dom.grid.firstChild);
+    }
+  }
+
   function buildPads(sounds) {
-    dom.grid.replaceChildren();
+    clearGrid();
     pads.clear();
 
     if (!sounds || sounds.length === 0) {
@@ -155,10 +135,10 @@
 
     dom.empty.hidden = true;
 
-    const fragment = document.createDocumentFragment();
+    var fragment = document.createDocumentFragment();
 
-    for (const sound of sounds) {
-      const pad = document.createElement('button');
+    sounds.forEach(function (sound) {
+      var pad = document.createElement('button');
       pad.type = 'button';
       pad.className = 'pad';
       pad.dataset.id = sound.id;
@@ -168,30 +148,31 @@
       }
 
       if (settings.showLabels) {
-        const label = document.createElement('span');
+        var label = document.createElement('span');
         label.className = 'pad-label';
         label.textContent = sound.name;
         pad.appendChild(label);
       }
 
-      pad.addEventListener('pointerdown', (event) => {
-        event.preventDefault();
+      addPress(pad, function () {
         trigger(sound.id);
       });
 
-      pad.addEventListener('contextmenu', (event) => event.preventDefault());
+      pad.addEventListener('contextmenu', function (event) {
+        event.preventDefault();
+      });
 
       fragment.appendChild(pad);
       pads.set(sound.id, pad);
-    }
+    });
 
     dom.grid.appendChild(fragment);
   }
 
   function trigger(id) {
-    send({ type: 'play', id });
+    send({ type: 'play', id: id });
 
-    const pad = pads.get(id);
+    var pad = pads.get(id);
     if (!pad) {
       return;
     }
@@ -200,7 +181,9 @@
       pad.classList.remove('is-hit');
       void pad.offsetWidth;
       pad.classList.add('is-hit');
-      window.setTimeout(() => pad.classList.remove('is-hit'), 150);
+      window.setTimeout(function () {
+        pad.classList.remove('is-hit');
+      }, 150);
     }
 
     if (settings && settings.vibrateOnTap && navigator.vibrate) {
@@ -213,13 +196,13 @@
       return;
     }
 
-    const percent = Math.round(gain * 100);
+    var percent = Math.round(gain * 100);
     dom.volume.value = String(percent);
-    dom.volumeValue.textContent = `${percent}%`;
+    dom.volumeValue.textContent = percent + '%';
   }
 
   function applyTheme(theme) {
-    let resolved = 'dark';
+    var resolved = 'dark';
 
     if (theme === 'auto') {
       resolved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
@@ -228,14 +211,9 @@
     }
 
     dom.root.dataset.theme = resolved;
-
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.setAttribute('content', resolved === 'light' ? '#f3f4f6' : '#0f1014');
-    }
   }
 
-  async function requestWakeLock() {
+  function requestWakeLock() {
     if (!settings || !settings.keepAwake) {
       return;
     }
@@ -244,37 +222,33 @@
       return;
     }
 
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => {
+    navigator.wakeLock.request('screen').then(function (lock) {
+      wakeLock = lock;
+      wakeLock.addEventListener('release', function () {
         wakeLock = null;
       });
-    } catch {
+    }, function () {
       wakeLock = null;
-    }
+    });
   }
 
-  dom.volume.addEventListener('pointerdown', () => {
+  dom.volume.addEventListener('input', function () {
     volumeDragging = true;
-  });
 
-  dom.volume.addEventListener('input', () => {
-    const percent = Number(dom.volume.value);
-    dom.volumeValue.textContent = `${percent}%`;
+    var percent = Number(dom.volume.value);
+    dom.volumeValue.textContent = percent + '%';
     send({ type: 'setMasterGain', value: percent / 100 });
   });
 
-  window.addEventListener('pointerup', () => {
+  dom.volume.addEventListener('change', function () {
     volumeDragging = false;
   });
 
-  window.addEventListener('pointercancel', () => {
-    volumeDragging = false;
+  dom.stopAll.addEventListener('click', function () {
+    send({ type: 'stopAll' });
   });
 
-  dom.stopAll.addEventListener('click', () => send({ type: 'stopAll' }));
-
-  document.addEventListener('visibilitychange', () => {
+  document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
       requestWakeLock();
     }
