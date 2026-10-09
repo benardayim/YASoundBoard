@@ -1,4 +1,4 @@
-namespace YasoundBoard.Audio;
+namespace YASoundBoard.Audio;
 
 public enum AudioCommandKind
 {

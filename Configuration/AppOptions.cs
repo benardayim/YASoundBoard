@@ -1,4 +1,4 @@
-namespace YasoundBoard.Configuration;
+namespace YASoundBoard.Configuration;
 
 public sealed class AudioOptions
 {
@@ -59,13 +59,13 @@ public sealed class UiOptions
 {
     public const string SectionName = "Ui";
 
-    public string Title { get; set; } = "yasoundboard";
+    public string Title { get; set; } = "YASoundBoard";
     public string DisplayMode { get; set; } = "standalone";
 }
 
 public static class ConfigSections
 {
-    public const string Root = "YasoundBoard";
+    public const string Root = "YASoundBoard";
 
     public static string Path(string section) => $"{Root}:{section}";
 }

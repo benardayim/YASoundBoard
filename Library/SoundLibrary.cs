@@ -4,9 +4,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using YasoundBoard.Configuration;
+using YASoundBoard.Configuration;
 
-namespace YasoundBoard.Library;
+namespace YASoundBoard.Library;
 
 public sealed class SoundLibrary
 {

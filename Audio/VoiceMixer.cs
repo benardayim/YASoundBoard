@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using NAudio.Wave;
-using YasoundBoard.Configuration;
-using YasoundBoard.Library;
+using YASoundBoard.Configuration;
+using YASoundBoard.Library;
 
-namespace YasoundBoard.Audio;
+namespace YASoundBoard.Audio;
 
 public sealed class VoiceMixer : IWaveProvider
 {

@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
-namespace YasoundBoard.Server;
+namespace YASoundBoard.Server;
 
 public sealed record LanAddress(string Interface, string Address);
 

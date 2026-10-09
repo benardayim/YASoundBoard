@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Options;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using YasoundBoard.Configuration;
-using YasoundBoard.Library;
+using YASoundBoard.Configuration;
+using YASoundBoard.Library;
 
-namespace YasoundBoard.Audio;
+namespace YASoundBoard.Audio;
 
 public sealed class AudioEngine : IDisposable
 {

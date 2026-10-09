@@ -3,11 +3,11 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using YasoundBoard.Audio;
-using YasoundBoard.Configuration;
-using YasoundBoard.Library;
+using YASoundBoard.Audio;
+using YASoundBoard.Configuration;
+using YASoundBoard.Library;
 
-namespace YasoundBoard.Server;
+namespace YASoundBoard.Server;
 
 public sealed class Hub
 {

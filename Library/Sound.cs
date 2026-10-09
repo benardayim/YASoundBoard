@@ -1,4 +1,4 @@
-namespace YasoundBoard.Library;
+namespace YASoundBoard.Library;
 
 public sealed class Sound
 {

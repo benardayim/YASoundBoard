@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Options;
 
-namespace YasoundBoard.Configuration;
+namespace YASoundBoard.Configuration;
 
 public static class OptionsRegistration
 {
-    public static IServiceCollection AddYasoundBoardOptions(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddYASoundBoardOptions(this IServiceCollection services, IConfiguration configuration)
     {
         services
             .AddOptions<AudioOptions>()

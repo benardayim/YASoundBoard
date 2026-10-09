@@ -1,4 +1,4 @@
-# yasoundboard
+# YASoundBoard
 
 A soundboard you control from your phone or any touch screen device.
 
@@ -27,7 +27,7 @@ plays straight away.
 
    ```json
    {
-     "YasoundBoard": {
+     "YASoundBoard": {
        "Audio": {
          "DeviceNameMatch": "Speakers"
        }
@@ -107,7 +107,7 @@ Two settings live here, because the phone cannot supply them.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| `Title` | `yasoundboard` | The page title and the name on the home screen. |
+| `Title` | `YASoundBoard` | The page title and the name on the home screen. |
 | `DisplayMode` | `standalone` | How the page opens from the home screen. |
 
 Everything else about how the page looks and behaves is set on the phone, using the Settings button

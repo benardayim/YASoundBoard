@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace YasoundBoard.Server;
+namespace YASoundBoard.Server;
 
 public sealed class ClientMessage
 {

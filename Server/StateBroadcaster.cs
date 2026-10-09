@@ -1,7 +1,7 @@
-using YasoundBoard.Audio;
-using YasoundBoard.Library;
+using YASoundBoard.Audio;
+using YASoundBoard.Library;
 
-namespace YasoundBoard.Server;
+namespace YASoundBoard.Server;
 
 public sealed class StateBroadcaster : BackgroundService
 {

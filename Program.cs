@@ -1,15 +1,15 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using YasoundBoard.Audio;
-using YasoundBoard.Configuration;
-using YasoundBoard.Library;
-using YasoundBoard.Server;
+using YASoundBoard.Audio;
+using YASoundBoard.Configuration;
+using YASoundBoard.Library;
+using YASoundBoard.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true);
 
-builder.Services.AddYasoundBoardOptions(builder.Configuration);
+builder.Services.AddYASoundBoardOptions(builder.Configuration);
 
 var server = builder.Configuration
     .GetSection(ConfigSections.Path(ServerOptions.SectionName))

@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var STORE_KEY = 'yasoundboard.ui';
+  var STORE_KEY = 'YASoundBoard.ui';
 
   var ACCENTS = ['#e24b4a', '#d4537e', '#7f77dd', '#378add', '#1d9e75', '#ef9f27'];
 
@@ -362,7 +362,7 @@
     } else if (message.type === 'state') {
       applyState(message);
     } else if (message.type === 'error') {
-      console.warn('yasoundboard:', message.message);
+      console.warn('YASoundBoard:', message.message);
     }
   }
 

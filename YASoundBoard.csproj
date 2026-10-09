@@ -4,8 +4,8 @@
     <TargetFramework>net11.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>yasoundboard</AssemblyName>
-    <RootNamespace>YasoundBoard</RootNamespace>
+    <AssemblyName>YASoundBoard</AssemblyName>
+    <RootNamespace>YASoundBoard</RootNamespace>
     <InvariantGlobalization>true</InvariantGlobalization>
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>

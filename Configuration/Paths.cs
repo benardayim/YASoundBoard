@@ -1,4 +1,4 @@
-namespace YasoundBoard.Configuration;
+namespace YASoundBoard.Configuration;
 
 public static class Paths
 {
